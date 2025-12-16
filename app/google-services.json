@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1020299485970",
+    "firebase_url": "https://myrs-2d25d-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "myrs-2d25d",
+    "storage_bucket": "myrs-2d25d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020299485970:android:81249136f7c015acdf49cb",
+        "android_client_info": {
+          "package_name": "com.example.myrs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByhuK6I-C3-_AMlRZcXY5pqjBCQOsh6Gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

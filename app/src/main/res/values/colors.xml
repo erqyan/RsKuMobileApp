@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Colors -->
+    <color name="purple_200">#BB86FC</color>
+    <color name="purple_300">#D1A3FF</color>
+    <color name="purple_400">#A668FF</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_600">#4B00C8</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="purple_800">#26008E</color>
+
+    <!-- Background Neutrals -->
+    <color name="gray_light">#F8F7FB</color>
+    <color name="gray_soft">#EDEAF5</color>
+    <color name="gray_text">#777777</color>
+
+    <!-- Essentials -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Accent Emergency -->
+    <color name="danger_red">#FF4242</color>
+</resources>
