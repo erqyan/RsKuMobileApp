@@ -6,7 +6,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Hospital(
-    var id: String = "", // RTDB Key
+    var id: String = "",
 
     @get:PropertyName("name") @set:PropertyName("name")
     var name: String = "",
@@ -42,10 +42,24 @@ data class Hospital(
     var city: String = "",
 
     @get:PropertyName("province") @set:PropertyName("province")
-    var province: String = ""
+    var province: String = "",
+
+    // Tambahkan properti photos
+    @get:PropertyName("photos") @set:PropertyName("photos")
+    var photos: List<Photo> = listOf()
+
 ) : Parcelable {
     val hasIcu: Boolean get() = icuAvailable > 0
 }
+
+@Parcelize
+data class Photo(
+    @get:PropertyName("url") @set:PropertyName("url")
+    var url: String = ""
+) : Parcelable
+
+// ... (kode ErRegistration tetap sama)
+
 
 // Model for Booking IGD (Registrasi)
 // Pastikan hanya ada SATU definisi data class ini di file

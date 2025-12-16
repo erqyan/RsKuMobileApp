@@ -17,14 +17,73 @@
             app:contentScrim="@color/purple_500"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <!-- Placeholder Gambar RS -->
-            <ImageView
+            <!-- UPDATE: Container untuk Gambar dan Tombol Navigasi -->
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_gallery"
-                android:background="#DDDDDD"
-                app:layout_collapseMode="parallax" />
+                app:layout_collapseMode="parallax">
+
+                <!-- Gambar Utama -->
+                <ImageView
+                    android:id="@+id/ivHospitalImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_gallery"
+                    android:background="#DDDDDD" />
+
+                <!-- Gradient agar tombol terlihat jelas -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#20000000"/>
+
+                <!-- Tombol PREV (Kiri) -->
+                <ImageButton
+                    android:id="@+id/btnPrevPhoto"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="10dp"
+                    android:src="@android:drawable/ic_media_previous"
+                    android:background="@drawable/bg_circle_translucent"
+                    android:backgroundTint="#80000000"
+                    app:tint="@color/white"
+                    android:contentDescription="Previous Photo"/>
+
+                <!-- Tombol NEXT (Kanan) -->
+                <ImageButton
+                    android:id="@+id/btnNextPhoto"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="10dp"
+                    android:src="@android:drawable/ic_media_next"
+                    android:background="@drawable/bg_circle_translucent"
+                    android:backgroundTint="#80000000"
+                    app:tint="@color/white"
+                    android:contentDescription="Next Photo"/>
+
+                <!-- Indikator Posisi Foto (Contoh: 1/3) -->
+                <TextView
+                    android:id="@+id/tvPhotoIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_margin="16dp"
+                    android:text="1/1"
+                    android:textColor="@color/white"
+                    android:background="#80000000"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:textSize="12sp"
+                    android:visibility="gone"/>
+
+            </RelativeLayout>
+            <!-- END UPDATE -->
 
             <View
                 android:layout_width="match_parent"
@@ -36,6 +95,7 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin">
 
+                <!-- ... (Isi Toolbar Tetap Sama) ... -->
                 <ImageView
                     android:id="@+id/btnBack"
                     android:layout_width="wrap_content"
@@ -53,9 +113,11 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@color/white"/>
+
             </androidx.appcompat.widget.Toolbar>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
+
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
