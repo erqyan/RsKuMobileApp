@@ -5,6 +5,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.location.Location
 import android.os.Bundle
 import android.text.Editable
@@ -19,6 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.red
 import com.example.myrs.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -47,15 +52,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pointAnnotationManager: PointAnnotationManager
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    // REALTIME DATABASE REFERENCE
     private val db = Firebase.database.reference
-
     private var hospitalList: List<Hospital> = listOf()
     private var currentUserLocation: Location? = null
     private var filterIcu: Boolean = false
     private var filterRadius5km: Boolean = false
 
     private val annotationHospitalMap: MutableMap<String, Hospital> = mutableMapOf()
+
+    private var isShowingNearest = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,30 +73,23 @@ class MainActivity : AppCompatActivity() {
         setupUi()
         requestLocationPermission()
 
-        // Admin Access (Hidden on Title Click)
         binding.tvTitle.setOnClickListener {
-            // Secret Admin Access
             startActivity(Intent(this, AdminDashboardActivity::class.java))
         }
 
-        // --- NEW: LOGIC TOMBOL MY BOOKINGS ---
         binding.btnMyBookings.setOnClickListener {
             val userId = getConsistentUserId()
-
-            // Buka halaman status dengan ID yang konsisten
             val intent = Intent(this, BookingStatusActivity::class.java)
             intent.putExtra("USER_ID", userId)
             startActivity(intent)
         }
     }
 
-    // --- FUNGSI PENTING: MENDAPATKAN ID KONSISTEN ---
     private fun getConsistentUserId(): String {
         val sharedPrefs = getSharedPreferences("MyRS_Prefs", Context.MODE_PRIVATE)
         var userId = sharedPrefs.getString("DEVICE_USER_ID", null)
 
         if (userId == null) {
-            // Jika belum ada ID, buat ID baru dan simpan selamanya
             userId = UUID.randomUUID().toString()
             sharedPrefs.edit().putString("DEVICE_USER_ID", userId).apply()
         }
@@ -127,18 +125,16 @@ class MainActivity : AppCompatActivity() {
             mapboxMap.setCamera(
                 CameraOptions.Builder()
                     .center(Point.fromLngLat(110.3695, -7.7956))
-                    .zoom(12.0)
+                    .zoom(11.5)
                     .build()
             )
-
-            // FETCH DATA FROM RTDB
             fetchHospitalsFromRTDB()
         }
     }
 
     private fun setupUi() {
-        binding.tvTitle.text = "RS Darurat"
-        binding.tvSubtitle.text = "Klik judul untuk Admin Panel."
+        binding.tvTitle.text = "Temukan RS"
+        binding.tvSubtitle.text = "Bantuan medis darurat di sekitarmu"
 
         binding.btnPickLocation.setOnClickListener {
             Toast.makeText(this, "Mendeteksi lokasi GPS...", Toast.LENGTH_SHORT).show()
@@ -150,7 +146,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.btnFindNearest.setOnClickListener {
-            moveToNearestHospital()
+            if (isShowingNearest) {
+                resetAllFilters()
+            } else {
+                moveToNearestHospital()
+            }
         }
 
         binding.btnFilterIcu.setOnClickListener {
@@ -209,36 +209,59 @@ class MainActivity : AppCompatActivity() {
             }
         }
         updateMarkers(filtered)
+
+        if (isShowingNearest) {
+            updateButtonState(false)
+        }
     }
 
+    // --- PEMBARUAN LOGIKA UTAMA ADA DI SINI ---
     private fun updateMarkers(hospitals: List<Hospital>) {
         if (!::pointAnnotationManager.isInitialized) return
         pointAnnotationManager.deleteAll()
         annotationHospitalMap.clear()
 
         hospitals.forEach { hospital ->
-            val iconRes = if (hospital.hasIcu) android.R.drawable.star_big_on else android.R.drawable.star_big_off
+            // Tentukan ikon dan warna berdasarkan ketersediaan ICU
+            val iconRes: Int
+            val iconColor: Int
+            if (hospital.hasIcu) {
+                iconRes = R.drawable.ic_marker_icu
+                iconColor = ContextCompat.getColor(this, R.color.red) // Warna Merah
+            } else {
+                iconRes = R.drawable.ic_marker_no_icu
+                iconColor = ContextCompat.getColor(this, R.color.grey) // Warna Abu-abu
+            }
+
+            // Buat bitmap dari drawable dengan warna yang sudah ditentukan
+            val markerBitmap = getBitmapFromVectorDrawable(iconRes, iconColor)
+
             val point = Point.fromLngLat(hospital.longitude, hospital.latitude)
 
-            val marker = PointAnnotationOptions()
+            val markerOptions = PointAnnotationOptions()
                 .withPoint(point)
-                .withIconImage(getBitmapFromVectorDrawable(iconRes))
+                .withIconImage(markerBitmap) // Gunakan bitmap yang sudah diwarnai
                 .withTextField(hospital.name)
+                .withTextOffset(listOf(0.0, 2.0)) // Sesuaikan posisi teks di bawah marker
+                .withTextColor("#000000") // Warna teks nama RS
+                .withTextSize(10.0)
+                .withTextHaloColor("#FFFFFF")
+                .withTextHaloWidth(1.5)
 
-            val created = pointAnnotationManager.create(marker)
-            annotationHospitalMap[created.id] = hospital
+            val createdAnnotation = pointAnnotationManager.create(markerOptions)
+            annotationHospitalMap[createdAnnotation.id] = hospital
         }
     }
 
     private fun showHospitalSearchDialog() {
         val context = this
-        val layout = LinearLayout(context)
-        layout.orientation = LinearLayout.VERTICAL
-        layout.setPadding(50, 40, 50, 10)
-        val searchInput = EditText(context)
-        searchInput.hint = "Ketik nama rumah sakit..."
-        layout.addView(searchInput)
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 40, 50, 10)
+        }
+        val searchInput = EditText(context).apply { hint = "Ketik nama rumah sakit..." }
         val listView = ListView(context)
+        layout.addView(searchInput)
         layout.addView(listView)
 
         val hospitalNames = hospitalList.map { it.name }
@@ -272,14 +295,48 @@ class MainActivity : AppCompatActivity() {
 
     private fun moveToNearestHospital() {
         val loc = currentUserLocation
-        if (loc == null) { getDeviceLocation(); return }
+        if (loc == null) {
+            Toast.makeText(this, "Lokasi Anda belum terdeteksi.", Toast.LENGTH_SHORT).show()
+            getDeviceLocation()
+            return
+        }
         val nearest = hospitalList.minByOrNull { hospital ->
             calculateDistance(loc.latitude, loc.longitude, hospital.latitude, hospital.longitude)
         }
         if (nearest != null) {
             val point = Point.fromLngLat(nearest.longitude, nearest.latitude)
-            mapboxMap.setCamera(CameraOptions.Builder().center(point).zoom(14.0).build())
+            mapboxMap.setCamera(CameraOptions.Builder().center(point).zoom(14.5).build())
             Toast.makeText(this, "RS terdekat: ${nearest.name}", Toast.LENGTH_SHORT).show()
+            updateMarkers(listOf(nearest))
+            updateButtonState(true)
+        }
+    }
+
+    private fun resetAllFilters() {
+        filterIcu = false
+        filterRadius5km = false
+        binding.btnFilterIcu.isChecked = false
+        binding.btnFilterRadius.isChecked = false
+
+        applyFiltersAndUpdate()
+
+        mapboxMap.setCamera(
+            CameraOptions.Builder()
+                .center(Point.fromLngLat(110.3695, -7.7956))
+                .zoom(11.5)
+                .build()
+        )
+        updateButtonState(false)
+    }
+
+    private fun updateButtonState(isShowingNearest: Boolean) {
+        this.isShowingNearest = isShowingNearest
+        if (isShowingNearest) {
+            binding.btnFindNearest.text = "Tampilkan Semua RS"
+            binding.btnFindNearest.setIconResource(R.drawable.ic_show_all)
+        } else {
+            binding.btnFindNearest.text = "Tampilkan RS Terdekat"
+            binding.btnFindNearest.setIconResource(R.drawable.ic_mylocation)
         }
     }
 
@@ -291,16 +348,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // --- FUNGSI HELPER INI DIPERBARUI UNTUK MENERIMA WARNA ---
     @SuppressLint("UseCompatLoadingForDrawables")
-    private fun getBitmapFromVectorDrawable(drawableId: Int): android.graphics.Bitmap {
+    private fun getBitmapFromVectorDrawable(drawableId: Int, tintColor: Int): Bitmap {
         val drawable = ContextCompat.getDrawable(this, drawableId)
-        val bitmap = android.graphics.Bitmap.createBitmap(
-            drawable!!.intrinsicWidth,
+            ?: return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+
+        val bitmap = Bitmap.createBitmap(
+            drawable.intrinsicWidth,
             drawable.intrinsicHeight,
-            android.graphics.Bitmap.Config.ARGB_8888
+            Bitmap.Config.ARGB_8888
         )
-        val canvas = android.graphics.Canvas(bitmap)
+        val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
+        // Terapkan filter warna
+        drawable.colorFilter = PorterDuffColorFilter(tintColor, PorterDuff.Mode.SRC_IN)
         drawable.draw(canvas)
         return bitmap
     }
@@ -322,9 +384,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this,
+        if (ContextCompat.checkSelfPermission(
+                this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED) {
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             locationPermissionRequest.launch(
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -342,6 +406,8 @@ class MainActivity : AppCompatActivity() {
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     currentUserLocation = location
+                    binding.tvCurrentLocationText.text = "Lokasi kamu (GPS)"
+                    mapboxMap.setCamera(CameraOptions.Builder().center(Point.fromLngLat(location.longitude, location.latitude)).zoom(12.5).build())
                 } else {
                     Toast.makeText(this, "Gagal mendapatkan lokasi. Pastikan GPS aktif.", Toast.LENGTH_SHORT).show()
                 }

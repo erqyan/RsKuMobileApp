@@ -36,7 +36,6 @@
             android:label="Status Pendaftaran"
             android:parentActivityName=".MainActivity" />
 
-
         <meta-data
             android:name="com.mapbox.maps.token"
             android:value="@string/mapbox_access_token" />

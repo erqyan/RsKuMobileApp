@@ -178,38 +178,121 @@ class HospitalDetailActivity : AppCompatActivity() {
     // Pastikan copy function submitBookingToRTDB, showBookingConfirmationDialog, openGoogleMaps
     // dari kode sebelumnya ke sini. Saya persingkat agar fokus di fitur foto.
 
-    private fun submitBookingToRTDB(hospital: Hospital, name: String, nik: String, phone: String, gender: String, keluhan: String) {
+    // In HospitalDetailActivity.kt
+
+    // In HospitalDetailActivity.kt
+
+// ... (kode lain di atasnya tetap sama) ...
+
+    private fun submitBookingToRTDB(
+        hospital: Hospital,
+        name: String,
+        nik: String,
+        phone: String,
+        gender: String,
+        keluhan: String
+    ) {
+        // --- AMBIL ID KONSISTEN DARI PREFERENCES ---
         val sharedPrefs = getSharedPreferences("MyRS_Prefs", Context.MODE_PRIVATE)
         var userId = sharedPrefs.getString("DEVICE_USER_ID", null)
+
+        // Jika null (sangat jarang terjadi), buat baru dan SIMPAN
         if (userId == null) {
             userId = UUID.randomUUID().toString()
             sharedPrefs.edit().putString("DEVICE_USER_ID", userId).apply()
         }
+        // -------------------------------------------------------------
+
         val newRef = db.child("registrations").push()
         val regId = newRef.key ?: ""
+
         val registration = ErRegistration(
-            id = regId, userId = userId!!, hospitalId = hospital.id,
-            patientName = name, nik = nik, phone = phone, gender = gender,
-            status = "waiting", note = keluhan, createdAt = System.currentTimeMillis()
+            id = regId,
+            userId = userId!!,
+            hospitalId = hospital.id,
+            patientName = name,
+            nik = nik,
+            phone = phone,
+            gender = gender,
+            status = "waiting",
+            note = keluhan,
+            createdAt = System.currentTimeMillis()
         )
-        newRef.setValue(registration).addOnSuccessListener {
-            binding.btnSubmitBooking.isEnabled = true
-            showBookingConfirmationDialog(hospital, regId)
-        }.addOnFailureListener {
-            binding.btnSubmitBooking.isEnabled = true
-            Toast.makeText(this, "Gagal: ${it.message}", Toast.LENGTH_SHORT).show()
-        }
+
+        // Simpan data pendaftaran
+        newRef.setValue(registration)
+            .addOnSuccessListener {
+                // --- LOGIKA BARU: UPDATE JUMLAH ICU ---
+                if (hospital.icuAvailable > 0) {
+                    val newIcuCount = hospital.icuAvailable - 1
+                    db.child("hospitals").child(hospital.id).child("icu_available").setValue(newIcuCount)
+                        .addOnSuccessListener {
+                            android.util.Log.d("FirebaseUpdate", "Jumlah ICU untuk ${hospital.name} berhasil diperbarui.")
+                        }
+                        .addOnFailureListener {
+                            android.util.Log.e("FirebaseUpdate", "Gagal memperbarui jumlah ICU.", it)
+                        }
+                }
+                // -------------------------------------------
+
+                // Lanjutkan alur yang sudah ada (tampilkan dialog sukses, dll)
+                binding.btnSubmitBooking.isEnabled = true
+                binding.btnSubmitBooking.text = "DAFTAR SEKARANG"
+
+                // Bersihkan form setelah submit
+                binding.etPatientName.text?.clear()
+                binding.etNik.text?.clear()
+                binding.etPhone.text?.clear()
+                binding.etKeluhan.text?.clear()
+                binding.rgGender.clearCheck()
+                binding.etPatientName.requestFocus() // Kembalikan fokus ke input pertama
+
+                // Panggil dialog konfirmasi yang baru
+                showBookingConfirmationDialog(hospital, regId)
+            }
+            .addOnFailureListener { e ->
+                binding.btnSubmitBooking.isEnabled = true
+                binding.btnSubmitBooking.text = "DAFTAR SEKARANG"
+                Toast.makeText(this, "Gagal mendaftar: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
+    // --- FUNGSI INI YANG DIPERBARUI ---
     private fun showBookingConfirmationDialog(hospital: Hospital, regCode: String) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Berhasil").setMessage("Kode: ${regCode.takeLast(6)}")
-        builder.setPositiveButton("OK") { d, _ -> openGoogleMaps(hospital); d.dismiss() }
-        builder.show()
+        AlertDialog.Builder(this)
+            .setTitle("Pendaftaran Berhasil!")
+            .setMessage("Data Anda telah terkirim ke IGD ${hospital.name}.\n\nKode Booking: ${regCode.takeLast(6).uppercase()}\n\nSilakan segera menuju lokasi.")
+            .setCancelable(false) // Mencegah dialog ditutup dengan tombol back
+            .setPositiveButton("Buka Rute Maps") { dialog, _ ->
+                // Aksi untuk tombol positif: buka Google Maps
+                openGoogleMaps(hospital)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Tutup") { dialog, _ ->
+                // Aksi untuk tombol negatif: hanya tutup dialog
+                dialog.dismiss()
+            }
+            .show()
     }
 
     private fun openGoogleMaps(hospital: Hospital) {
-        val uri = Uri.parse("google.navigation:q=${hospital.latitude},${hospital.longitude}")
-        startActivity(Intent(Intent.ACTION_VIEW, uri))
+        // Pastikan URL valid, terutama jika lintang/bujur bisa 0
+        if (hospital.latitude != 0.0 && hospital.longitude != 0.0) {
+            val gmmIntentUri = Uri.parse("google.navigation:q=${hospital.latitude},${hospital.longitude}")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            try {
+                startActivity(mapIntent)
+            } catch (e: Exception) {
+                // Fallback jika Google Maps tidak terinstall
+                Toast.makeText(this, "Aplikasi Google Maps tidak ditemukan.", Toast.LENGTH_SHORT).show()
+                // Buka di browser sebagai alternatif
+                val browserIntent = Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${hospital.latitude},${hospital.longitude}"))
+                startActivity(browserIntent)
+            }
+        } else {
+            Toast.makeText(this, "Data lokasi RS tidak valid.", Toast.LENGTH_SHORT).show()
+        }
     }
 }
