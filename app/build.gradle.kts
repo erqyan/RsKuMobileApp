@@ -7,14 +7,12 @@ plugins {
 
 
 android {
-    // ... rest of your file
-
     namespace = "com.example.myrs"
-    compileSdk = 34 // Sesuaikan dengan SDK stabil terbaru (33/34), 36 mungkin masih preview
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.myrs"
-        minSdk = 26 // Minimal SDK yang wajar untuk maps/firebase modern
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -45,29 +43,30 @@ android {
 }
 
 dependencies {
-    // --- Android Core & UI ---
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
 
-    // --- Lifecycle ---
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
-    // --- Maps & Location ---
     implementation("com.google.android.gms:play-services-location:21.1.0")
-    implementation("com.mapbox.maps:android:11.2.0")
 
-    // --- FIREBASE (Clean Setup) ---
-    // Gunakan BOM untuk mengatur versi
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
 
-    // Library Firebase (Tanpa versi, diatur oleh BOM)
-    implementation("com.google.firebase:firebase-database-ktx") // Realtime Database
-    implementation("com.google.firebase:firebase-auth-ktx")     // Auth
-    implementation("com.google.firebase:firebase-analytics-ktx") // Analytics
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation("com.google.firebase:firebase-database-ktx")
 
 }
