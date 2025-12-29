@@ -1,6 +1,5 @@
 package com.example.myrs
 
-// HospitalAdapter.kt
 
 import android.view.LayoutInflater
 import android.view.View

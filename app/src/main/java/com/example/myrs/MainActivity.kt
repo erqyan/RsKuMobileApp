@@ -151,9 +151,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupUi() {
-        binding.tvTitle.setOnClickListener {
-            startActivity(Intent(this, AdminDashboardActivity::class.java))
-        }
 
         binding.btnMyBookings.setOnClickListener {
             val userId = getConsistentUserId()

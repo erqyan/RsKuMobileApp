@@ -58,11 +58,6 @@ data class Photo(
     var url: String = ""
 ) : Parcelable
 
-// ... (kode ErRegistration tetap sama)
-
-
-// Model for Booking IGD (Registrasi)
-// Pastikan hanya ada SATU definisi data class ini di file
 data class ErRegistration(
     @get:PropertyName("id") @set:PropertyName("id")
     var id: String = "",
