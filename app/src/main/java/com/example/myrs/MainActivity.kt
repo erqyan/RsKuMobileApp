@@ -44,7 +44,6 @@ import java.util.UUID
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var binding: ActivityMainBinding
-    // 1. UBAH googleMap MENJADI NULLABLE untuk mencegah crash
     private var googleMap: GoogleMap? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
@@ -57,7 +56,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     private val markerHospitalMap: MutableMap<Marker, Hospital> = mutableMapOf()
     private var isShowingNearest = false
 
-    // 2. PINDAHKAN LISTENER FIREBASE KE PROPERTI KELAS
     private val hospitalValueEventListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val list = mutableListOf<Hospital>()
@@ -93,7 +91,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         requestLocationPermission()
     }
 
-    // 3. ATUR LISTENER PADA SIKLUS HIDUP ACTIVITY
     override fun onStart() {
         super.onStart()
         // Mulai mendengarkan data saat activity dimulai
@@ -109,7 +106,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(map: GoogleMap) {
         this.googleMap = map
         setupMap()
-        // Setelah peta siap, kita bisa mencoba update marker dengan data yang mungkin sudah ada
         applyFiltersAndUpdate()
     }
 
@@ -125,7 +121,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupMap() {
-        // 4. GUNAKAN 'let' UNTUK AKSES googleMap YANG AMAN
         googleMap?.let { map ->
             map.setOnMarkerClickListener { marker ->
                 markerHospitalMap[marker]?.let { hospital ->
@@ -274,7 +269,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun showHospitalSearchDialog() {
-        // ... (fungsi ini tidak perlu diubah, sudah cukup aman)
         val context = this
         val layout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL

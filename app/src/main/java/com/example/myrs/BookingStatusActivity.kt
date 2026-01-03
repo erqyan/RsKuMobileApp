@@ -50,8 +50,6 @@ class BookingStatusActivity : AppCompatActivity() {
     }
 
     private fun fetchUserBookings(userId: String) {
-        // Menggunakan filter manual (Client Side) sementara untuk memastikan data muncul
-        // meskipun Rules Index belum diset di Firebase Console.
         db.child("registrations")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {

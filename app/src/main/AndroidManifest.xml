@@ -28,7 +28,6 @@
 
         <activity android:name=".HospitalDetailActivity" />
 
-        <activity android:name=".AdminDashboardActivity" android:exported="false" />
         <activity
             android:name=".BookingStatusActivity"
             android:label="Status Pendaftaran"

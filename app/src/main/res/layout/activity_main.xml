@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="#F5F7FA">
 
-    <!-- DENGAN BLOK FRAGMENT GOOGLE MAPS INI -->
     <fragment
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -230,7 +229,6 @@
         app:iconGravity="textStart"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- PERUBAHAN: TOMBOL UNTUK MENGUBAH TIPE PETA -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/btnChangeMapType"
         android:layout_width="44dp"

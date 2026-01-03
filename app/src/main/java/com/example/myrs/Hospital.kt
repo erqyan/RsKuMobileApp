@@ -68,7 +68,6 @@ data class ErRegistration(
     @get:PropertyName("hospital_id") @set:PropertyName("hospital_id")
     var hospitalId: String = "",
 
-    // --- Data Pasien Baru ---
     @get:PropertyName("patient_name") @set:PropertyName("patient_name")
     var patientName: String = "",
 
@@ -80,7 +79,6 @@ data class ErRegistration(
 
     @get:PropertyName("gender") @set:PropertyName("gender")
     var gender: String = "",
-    // -----------------------
 
     @get:PropertyName("status") @set:PropertyName("status")
     var status: String = "waiting", // waiting, confirmed, completed, cancelled

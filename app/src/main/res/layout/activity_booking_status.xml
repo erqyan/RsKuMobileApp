@@ -55,7 +55,6 @@
             android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- List RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBookingStatus"
         android:layout_width="match_parent"

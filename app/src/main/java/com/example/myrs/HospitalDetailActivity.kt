@@ -155,7 +155,6 @@ class HospitalDetailActivity : AppCompatActivity() {
     // ... (Sisa fungsi handleBookingSubmission, submitBookingToRTDB, dll biarkan SAMA SEPERTI SEBELUMNYA) ...
 
     private fun handleBookingSubmission(hospital: Hospital) {
-        // ... (Kode sama) ...
         val name = binding.etPatientName.text.toString().trim()
         val nik = binding.etNik.text.toString().trim()
         val phone = binding.etPhone.text.toString().trim()
@@ -175,15 +174,6 @@ class HospitalDetailActivity : AppCompatActivity() {
         submitBookingToRTDB(hospital, name, nik, phone, gender, keluhan)
     }
 
-    // Pastikan copy function submitBookingToRTDB, showBookingConfirmationDialog, openGoogleMaps
-    // dari kode sebelumnya ke sini. Saya persingkat agar fokus di fitur foto.
-
-    // In HospitalDetailActivity.kt
-
-    // In HospitalDetailActivity.kt
-
-// ... (kode lain di atasnya tetap sama) ...
-
     private fun submitBookingToRTDB(
         hospital: Hospital,
         name: String,
@@ -192,17 +182,13 @@ class HospitalDetailActivity : AppCompatActivity() {
         gender: String,
         keluhan: String
     ) {
-        // --- AMBIL ID KONSISTEN DARI PREFERENCES ---
         val sharedPrefs = getSharedPreferences("MyRS_Prefs", Context.MODE_PRIVATE)
         var userId = sharedPrefs.getString("DEVICE_USER_ID", null)
 
-        // Jika null (sangat jarang terjadi), buat baru dan SIMPAN
         if (userId == null) {
             userId = UUID.randomUUID().toString()
             sharedPrefs.edit().putString("DEVICE_USER_ID", userId).apply()
         }
-        // -------------------------------------------------------------
-
         val newRef = db.child("registrations").push()
         val regId = newRef.key ?: ""
 
@@ -233,7 +219,6 @@ class HospitalDetailActivity : AppCompatActivity() {
                             android.util.Log.e("FirebaseUpdate", "Gagal memperbarui jumlah ICU.", it)
                         }
                 }
-                // -------------------------------------------
 
                 // Lanjutkan alur yang sudah ada (tampilkan dialog sukses, dll)
                 binding.btnSubmitBooking.isEnabled = true
@@ -257,7 +242,6 @@ class HospitalDetailActivity : AppCompatActivity() {
             }
     }
 
-    // --- FUNGSI INI YANG DIPERBARUI ---
     private fun showBookingConfirmationDialog(hospital: Hospital, regCode: String) {
         AlertDialog.Builder(this)
             .setTitle("Pendaftaran Berhasil!")
@@ -276,7 +260,6 @@ class HospitalDetailActivity : AppCompatActivity() {
     }
 
     private fun openGoogleMaps(hospital: Hospital) {
-        // Pastikan URL valid, terutama jika lintang/bujur bisa 0
         if (hospital.latitude != 0.0 && hospital.longitude != 0.0) {
             val gmmIntentUri = Uri.parse("google.navigation:q=${hospital.latitude},${hospital.longitude}")
             val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
@@ -284,9 +267,7 @@ class HospitalDetailActivity : AppCompatActivity() {
             try {
                 startActivity(mapIntent)
             } catch (e: Exception) {
-                // Fallback jika Google Maps tidak terinstall
                 Toast.makeText(this, "Aplikasi Google Maps tidak ditemukan.", Toast.LENGTH_SHORT).show()
-                // Buka di browser sebagai alternatif
                 val browserIntent = Intent(Intent.ACTION_VIEW,
                     Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${hospital.latitude},${hospital.longitude}"))
                 startActivity(browserIntent)
